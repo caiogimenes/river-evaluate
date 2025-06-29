@@ -18,7 +18,7 @@ class Summary(ABC): ...
 
 
 @dataclass
-class TrainResults:
+class TrainResult:
     model = None
     runtime: float = None
     eval_metric: Metric = None
@@ -39,3 +39,7 @@ class TrainResults:
     @property
     def params(self):
         return ["model", "runtime", "eval_metric", "dataset", "memory_usage"]
+
+
+@dataclass
+class Results: ...

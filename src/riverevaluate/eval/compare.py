@@ -3,7 +3,7 @@ from typing import List, Dict
 from time import time
 from river.stream import iter_pandas
 from river.metrics import MAE
-from .base import TrainResults
+from .base import TrainResult
 from pandas import DataFrame, Series
 from collections import defaultdict
 
@@ -41,13 +41,20 @@ class CompareModels(Comparation):
                 valid_targets.append(target[target_name])
         return valid_targets
 
-    def train_one(self, model, features, target, dataset_name, model_name) -> TrainResults:
-        result = TrainResults()
+    def train_one(
+        self, model, features, target, dataset_name, model_name
+    ) -> TrainResult:
+        result = TrainResult()
         start_time = time()
         mae = MAE()
         for x, y in iter_pandas(features, target):
             y_pred = model.predict_one(x)
-            mae.update(y, y_pred)
+            try:
+                mae.update(y, y_pred)
+            except Exception as e:
+                print(x)
+                print(y)
+                raise Exception(e)
             model.learn_one(x, y)
 
         runtime = time() - start_time
@@ -62,19 +69,20 @@ class CompareModels(Comparation):
 
         return result
 
-    def run_trainings(self) -> Dict[str, Dict[str, TrainResults]]:
-        results: Dict[Dict[TrainResults]] = defaultdict(defaultdict)
+    def run_trainings(self) -> Dict[str, Dict[str, TrainResult]]:
+        results: Dict[Dict[TrainResult]] = defaultdict(defaultdict)
 
         for i, model in enumerate(self.models):
+            dataset_index = 0
             for X, y in zip(self.features, self.targets):
-                j = self.targets.index(y)
-                result: TrainResults = self.train_one(
+                result: TrainResult = self.train_one(
                     model=model,
                     features=X,
                     target=y,
-                    dataset_name=self.dataset_map[j],
+                    dataset_name=self.dataset_map[dataset_index],
                     model_name=self.models_map[i],
                 )
                 results[result.model_name][result.dataset] = result
+                dataset_index += 1
 
         return results
