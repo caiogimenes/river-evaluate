@@ -69,8 +69,8 @@ class CompareModels(Comparation):
 
         return result
 
-    def run_trainings(self) -> Dict[str, Dict[str, TrainResult]]:
-        results: Dict[Dict[TrainResult]] = defaultdict(defaultdict)
+    def run_trainings(self) -> List[TrainResult]:
+        results = []
 
         for i, model in enumerate(self.models):
             dataset_index = 0
@@ -82,7 +82,11 @@ class CompareModels(Comparation):
                     dataset_name=self.dataset_map[dataset_index],
                     model_name=self.models_map[i],
                 )
-                results[result.model_name][result.dataset] = result
+                results.append(result)
                 dataset_index += 1
 
         return results
+
+    def summary_results(self):
+        results = self.run_trainings()
+        return DataFrame(data=[result.as_dict() for result in results])

@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from river.metrics.base import Metric
+from river.tree.hoeffding_tree import HoeffdingTree
+import numpy as np
 
 
 class Evaluation(ABC): ...
@@ -19,7 +21,7 @@ class Summary(ABC): ...
 
 @dataclass
 class TrainResult:
-    model = None
+    model: HoeffdingTree = None
     runtime: float = None
     eval_metric: Metric = None
     dataset: str = None
@@ -37,8 +39,32 @@ class TrainResult:
         return self.model._raw_memory_usage
 
     @property
+    def complexity(self):
+        cplx = np.array[
+            self.model.n_branches, self.model.height
+        ]
+
+        return np.mean(cplx)
+
+    @property
     def params(self):
-        return ["model", "runtime", "eval_metric", "dataset", "memory_usage"]
+        return [
+            "model",
+            "runtime",
+            "eval_metric",
+            "dataset",
+            "memory_usage",
+            "complexity",
+        ]
+
+    def as_dict(self):
+        return {
+            "model": self.model_name,
+            "runtime": self.runtime,
+            "dataset": self.dataset,
+            "error": self.eval_metric,
+            "memory": self.memory_usage,
+        }
 
 
 @dataclass
