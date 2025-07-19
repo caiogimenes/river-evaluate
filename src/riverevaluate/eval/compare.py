@@ -62,7 +62,7 @@ class CompareModels(Comparation):
         result.set_results(
             model=model,
             runtime=runtime,
-            eval_metric=mae,
+            eval_metric=mae.get(),
             dataset=dataset_name,
             model_name=model_name,
         )
@@ -90,3 +90,5 @@ class CompareModels(Comparation):
     def summary_results(self):
         results = self.run_trainings()
         return DataFrame(data=[result.as_dict() for result in results])
+    
+    def k_fold(self):...
