@@ -9,3 +9,5 @@ src/river_evaluate.egg-info
 *__pycache__/
 
 alteracoes.txt
+
+.idea/
