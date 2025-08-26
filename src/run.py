@@ -1,7 +1,7 @@
+import time
 from river import tree
 from river import metrics
 from river import datasets
-import time
 from src.data import RunnerLog
 
 def run(model: tree.HoeffdingTreeRegressor, dataset, metric: metrics.RMSE, register_rate=100):
