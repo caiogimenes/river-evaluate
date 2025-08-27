@@ -4,7 +4,7 @@ from typing import List
 
 class Plots:
     def __init__(self):
-        self.figsize = (20,25)
+        self.figsize = (30,40)
 
     def plot_performance(self, logs: List[RunnerLog]):
         datasets = {log.dataset for log in logs}
