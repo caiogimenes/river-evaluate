@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import List
-from pandas import DataFrame
+from pandas import DataFrame, read_csv
 
 
 @dataclass
@@ -16,9 +16,9 @@ class RunnerLog:
     learn_time: List[float]
     memory_usage: List[float]
 
-    def __init__(self, model, dataset):
-        self.model = model
-        self.dataset = dataset
+    def __init__(self, model_name, dataset_name):
+        self.model = model_name
+        self.dataset = dataset_name
         self.steps = []
         self.performance = []
         self.n_nodes = []
