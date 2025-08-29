@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import List
-from pandas import DataFrame, read_csv
+import pandas as pd
 
 
 @dataclass
@@ -39,7 +39,7 @@ class RunnerLog:
         self.memory_usage.append(kwargs.get("memory_usage"))
 
     def to_dataframe(self):
-        return DataFrame(
+        return pd.DataFrame(
             data=self.to_dict(),
             index=self.steps,
         )

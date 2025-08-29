@@ -1,5 +1,6 @@
 from river.datasets import synth
 
+
 def get_synth_datasets():
     """
     Retorna um dicionário de 'fábricas' de dataset.
