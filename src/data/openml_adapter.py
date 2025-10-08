@@ -1,12 +1,12 @@
-from ucimlrepo import fetch_ucirepo
+import openml
 from river.datasets import base
 from river import stream
-import abc
 
 
-class UCIAdapter(base.Dataset):
-    def __init__(self, data_id: int = None):
+class OpenMLAdapter(base.Dataset):
+    def __init__(self, target: str, data_id: int = None):
         self.id = data_id
+        self.target = target
         self.X, self.y = self._fetch()
         super().__init__(
             task=base.REG,
@@ -15,13 +15,13 @@ class UCIAdapter(base.Dataset):
 
     def _fetch(self):
         # fetch dataset
-        dataset = fetch_ucirepo(id=self.id)
-        return dataset.data.features, dataset.data.targets
+        dataset = openml.datasets.get_dataset(self.id)
+        X, y, _, _ = dataset.get_data(self.target)
+        return X, y
 
     def _remove_categorical(self):
         self.X = self.X.select_dtypes(include="float64")
 
-    @abc.abstractmethod
     def __iter__(self):
         return stream.iter_pandas(
             X=self.X,
