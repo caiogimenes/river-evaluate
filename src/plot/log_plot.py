@@ -57,7 +57,8 @@ class Plots:
             plt.show()
         return
 
-    def plot_band(self, logs: List[RunnerLog], dataset, model):
+    def plot_band_for_model(self, logs: List[RunnerLog], model):
+        logs = [log for log in logs if log.model == model]
         performances = []
         for log in logs:
             performances.append(log.performance)
