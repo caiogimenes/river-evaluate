@@ -70,3 +70,6 @@ class Plots:
         plt.fill_between(x=np.arange(len(performances[0])), y1=max_perf, y2=min_perf, alpha=0.5)
         plt.show()
         return
+
+    def plot_performance_diff(self, logs: tuple):
+        pass

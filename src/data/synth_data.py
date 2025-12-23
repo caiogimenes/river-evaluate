@@ -1,57 +1,50 @@
 from river.datasets import synth
 import numpy as np
 
-def get_synth_datasets():
-    """
-    Retorna um dicionário de 'fábricas' de dataset.
-    Cada item é uma função que, quando chamada, retorna um novo stream.
-    """
-    return {
-        "friedman_drift_local": lambda: synth.ConceptDriftStream(
-            stream=synth.FriedmanDrift(seed=42),
-            drift_stream=synth.FriedmanDrift(seed=42, drift_type='lea'),
-            seed=42, position=25000, width=5000
+def get_friedman_datasets(n_datasets=10):
+    drifts = ["lea", "gsg", "gra"]
+    seeds = np.random.choice(100, size=n_datasets, replace=False)
+    np.random.shuffle(seeds)
+    window = 10_000
+    datasets = {}
+    for i in range(n_datasets):
+        drift = np.random.choice(drifts)
+        if drift == "lea":
+            position = (200_000, 500_000, 700_000)
+        else:
+            position = (300_000, 700_000)
+        seed = int(seeds[i])
+        datasets[f"""
+        Friedman
+        Drift = {drift.upper()}
+        Seed = {seed}"""] = lambda s=seed, d=drift, p=position, w=window: synth.FriedmanDrift(
+            seed=s,
+            drift_type=d,
+            position=p,
+            transition_window=window
         ),
-        "hyperplane_drift": lambda: synth.ConceptDriftStream(
-            stream=synth.Hyperplane(seed=42, n_features=10),
-            drift_stream=synth.Hyperplane(seed=42, n_features=10, n_drift_features=5),
-            seed=42, position=25000, width=5000
-        ),
-    }
 
-def get_synth_abrupt_datasets(n_instances):
-    """
-    Retorna um dicionário de 'fábricas' de dataset com drift abrupto.
-    Cada item é uma função que, quando chamada, retorna um novo stream.
-    """
-    np.seed = 42
-    drift_positions = np.random.randint(low=0.2*n_instances, high=0.8*n_instances, size=(3,3))
-    return {
-        "friedman_drift_abrupt-GRA": lambda: synth.ConceptDriftStream(
-            stream=synth.FriedmanDrift(seed=42),
-            drift_stream=synth.FriedmanDrift(
-                seed=42,
-                drift_type='gra',
-                position=sorted((drift_positions[0][0], drift_positions[0][1]))
-            ),
-            seed=42,
+    return datasets
+
+def get_hyperplane_datasets(n_datasets=10):
+    seeds = np.random.choice(100, size=n_datasets, replace=False)
+    np.random.shuffle(seeds)
+    datasets = {}
+    for i in range(n_datasets):
+        drift_feat = np.random.choice(np.arange(1,10))
+        mag_change = np.random.random()
+        noise = np.random.random()
+        seed = int(seeds[i])
+        datasets[f"""
+        Hyperplane
+        Seed = {seed}
+        Drift Feat: {drift_feat}
+        Magnitude: {mag_change}
+        Noise: {noise}"""] = lambda s=seed, d=drift_feat, m=mag_change, n=noise: synth.Hyperplane(
+            seed=s,
+            n_drift_features=d,
+            mag_change=m,
+            noise_percentage=n
         ),
-        "friedman_drift_abrupt-2-LEA": lambda: synth.ConceptDriftStream(
-            stream=synth.FriedmanDrift(seed=90),
-            drift_stream=synth.FriedmanDrift(
-                seed=90,
-                drift_type='lea',
-                position=sorted(drift_positions[1,:])
-            ),
-            seed=42, width=2000
-        ),
-        "friedman_drift_abrupt-GSG": lambda: synth.ConceptDriftStream(
-            stream=synth.FriedmanDrift(seed=90),
-            drift_stream=synth.FriedmanDrift(
-                seed=90,
-                drift_type='gsg',
-                position=sorted((drift_positions[2][0], drift_positions[2][1]))
-            ),
-            seed=42, width=2000
-        ),
-    }
+
+    return datasets

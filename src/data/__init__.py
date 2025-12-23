@@ -1,5 +1,5 @@
 from .run_log import RunnerLog
-from .synth_data import get_synth_datasets, get_synth_abrupt_datasets
+from .synth_data import get_friedman_datasets, get_hyperplane_datasets
 from .real_data import get_real_datasets
 from .abalone import Abalone
 from .wine import Wine
@@ -13,7 +13,6 @@ from .airquality import AirQuality
 
 __all__ = [
     "RunnerLog",
-    "get_synth_datasets",
     "get_real_datasets",
     "Abalone",
     "Wine",
@@ -24,5 +23,6 @@ __all__ = [
     "CalHousing",
     "Ailerons",
     "AirQuality",
-    "get_synth_abrupt_datasets"
+    "get_friedman_datasets",
+    "get_hyperplane_datasets",
 ]

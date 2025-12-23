@@ -1,5 +1,54 @@
 import time
+import numpy as np
+from typing import List
+from pandas import DataFrame
 from src.data import RunnerLog
+from river.metrics import RMSE
+
+def rank_logs(logs: List[RunnerLog], att: str, models, datasets):
+    models = list(models)
+    datasets = list(datasets)
+    friedman_matrix = np.zeros(shape=(len(datasets), len(models)))
+    for log in logs:
+        model_idx = models.index(log.model)
+        dataset_idx = datasets.index(log.dataset)
+        if att == "performance":
+            friedman_matrix[dataset_idx, model_idx] = np.mean(log.performance)
+        elif att == "memory":
+            friedman_matrix[dataset_idx, model_idx] = np.mean(log.memory_usage)
+        elif att == "time":
+            friedman_matrix[dataset_idx, model_idx] = log.learn_time[-1]
+
+    return DataFrame(friedman_matrix, columns=models)
+
+
+def friedman_statistics(avg_rank, N=15):
+    """
+    Calculates the Friedman statistic.
+    :param avg_rank: list or array of average ranks for each algorithm
+    :param N: number of datasets (rows)
+    """
+    avg_rank = np.array(avg_rank)
+    k = len(avg_rank)
+
+    # Calculate Friedman statistic
+    chi_sq = (12 * N / (k * (k + 1))) * (np.sum(avg_rank ** 2) - (k * (k + 1) ** 2) / 4)
+    return chi_sq
+
+
+def iman_davenport(chi_sq, N=15, k=4):
+    """
+    Calculates the Iman-Davenport statistic.
+    :param chi_sq: The result from the Friedman statistic
+    :param N: number of datasets
+    :param k: number of algorithms (columns)
+    """
+    # Prevent division by zero if predictions are identical (denominator becomes 0)
+    denominator = (N * (k - 1) - chi_sq)
+    if denominator == 0:
+        return np.inf
+
+    return (N - 1) * chi_sq / denominator
 
 def evaluate(dataset, model, metric, print_every=10):
     """
@@ -15,7 +64,6 @@ def evaluate(dataset, model, metric, print_every=10):
     )
     metric = metric.clone()
     print(f"Evaluating {model_name} on {dataset_name}")
-
 
     for i, (x, y) in enumerate(dataset_stream):
         # Medir tempo de inferência
@@ -44,3 +92,22 @@ def evaluate(dataset, model, metric, print_every=10):
     print(f"Final {metric}: {metric.get():.6f}")
     print("-" * 50)
     return log
+
+def run_prequential_eval(models, datasets, instances):
+    logs = []
+    for d_name, dataset_generator in datasets.items():
+        data_gen = dataset_generator[0]()
+        for model_name, model in models.items():
+            eval_model = {
+                model_name: model.clone()
+            }
+            eval_dataset_stream = {
+                d_name: data_gen.take(instances)
+            }
+            logs.append(evaluate(
+                eval_dataset_stream,
+                eval_model,
+                RMSE(),
+                print_every= instances / 100
+            ))
+    return logs
