@@ -1,18 +1,23 @@
 from river.datasets import synth
 import numpy as np
 
-def get_friedman_datasets(drift: str, n_datasets=15):
-    seeds = np.random.choice(100, size=n_datasets, replace=False)
-    np.random.shuffle(seeds)
-    window = 1e5
+def get_friedman_datasets(drift_type: str | list, n_datasets=15):
+    seeds_pool = np.random.choice(100, size=n_datasets, replace=False)
+    np.random.shuffle(seeds_pool)
+    windows_pool = np.arange(100_000, 200_000, step=20_000)
     datasets = {}
     for i in range(n_datasets):
-        if drift == "lea":
-            position = (2e5, 5e5, 7e5)
+        if isinstance(drift_type, list):
+            drift = np.random.choice(drift_type)
         else:
-            position = (3e5, 7e5)
-        seed = int(seeds[i])
+            drift = drift_type
 
+        if drift == "lea":
+            position = (200_000, 500_000, 700_000)
+        else:
+            position = (300_000, 700_000)
+        seed = int(seeds_pool[i])
+        window = np.random.choice(windows_pool)
         datasets[f"""
         Friedman
         Drift = {drift.upper()}

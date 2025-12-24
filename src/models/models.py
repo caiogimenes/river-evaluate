@@ -3,7 +3,6 @@ from river import tree
 def get_models():
     """Retorna um dicionário de modelos para avaliação."""
     return {
-        f'HTR (baseline)': tree.HoeffdingTreeRegressor(),
         f'HATR (baseline)': tree.HoeffdingAdaptiveTreeRegressor(),
         f'HTR-QO (baseline)': tree.HoeffdingTreeRegressor(
             splitter=tree.splitter.QOSplitter(
