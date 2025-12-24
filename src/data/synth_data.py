@@ -1,19 +1,18 @@
 from river.datasets import synth
 import numpy as np
 
-def get_friedman_datasets(n_datasets=10):
-    drifts = ["lea", "gsg", "gra"]
+def get_friedman_datasets(drift: str, n_datasets=15):
     seeds = np.random.choice(100, size=n_datasets, replace=False)
     np.random.shuffle(seeds)
-    window = 10_000
+    window = 1e5
     datasets = {}
     for i in range(n_datasets):
-        drift = np.random.choice(drifts)
         if drift == "lea":
-            position = (200_000, 500_000, 700_000)
+            position = (2e5, 5e5, 7e5)
         else:
-            position = (300_000, 700_000)
+            position = (3e5, 7e5)
         seed = int(seeds[i])
+
         datasets[f"""
         Friedman
         Drift = {drift.upper()}
@@ -21,12 +20,12 @@ def get_friedman_datasets(n_datasets=10):
             seed=s,
             drift_type=d,
             position=p,
-            transition_window=window
+            transition_window=w
         ),
 
     return datasets
 
-def get_hyperplane_datasets(n_datasets=10):
+def get_hyperplane_datasets(n_datasets=15):
     seeds = np.random.choice(100, size=n_datasets, replace=False)
     np.random.shuffle(seeds)
     datasets = {}
@@ -35,6 +34,7 @@ def get_hyperplane_datasets(n_datasets=10):
         mag_change = np.random.random()
         noise = np.random.random()
         seed = int(seeds[i])
+
         datasets[f"""
         Hyperplane
         Seed = {seed}

@@ -22,7 +22,7 @@ def rank_logs(logs: List[RunnerLog], att: str, models, datasets):
     return DataFrame(friedman_matrix, columns=models)
 
 
-def friedman_statistics(avg_rank, N=15):
+def friedman_statistics(avg_rank, N: int):
     """
     Calculates the Friedman statistic.
     :param avg_rank: list or array of average ranks for each algorithm
@@ -36,7 +36,7 @@ def friedman_statistics(avg_rank, N=15):
     return chi_sq
 
 
-def iman_davenport(chi_sq, N=15, k=4):
+def iman_davenport(chi_sq, N: int, k: int):
     """
     Calculates the Iman-Davenport statistic.
     :param chi_sq: The result from the Friedman statistic
@@ -85,8 +85,8 @@ def evaluate(dataset, model, metric, print_every=10):
                 n_nodes=getattr(eval_model, 'n_nodes', 0),
                 n_leaves=getattr(eval_model, "n_leaves", 0),
                 height=getattr(eval_model, 'height', 0),
-                inference_time=(end_pred - start_pred) * 1_000_000,
-                learn_time=(end_learn - start_learn) * 1_000_000,
+                inference_time=(end_pred - start_pred) * 1e6,
+                learn_time=(end_learn - start_learn) * 1e6,
                 memory_usage=getattr(eval_model, '_raw_memory_usage', 0)
             )
     print(f"Final {metric}: {metric.get():.6f}")
