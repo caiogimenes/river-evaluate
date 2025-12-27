@@ -39,7 +39,7 @@ def iman_davenport(chi_sq, N: int, k: int):
     return (N - 1) * chi_sq / denominator
 
 
-def critical_difference_threshold(n_models: int, n_datasets: int, significance: float = 0.05):
+def critical_difference_nemenyi(n_models: int, n_datasets: int, significance: float = 0.05):
     """
     Based on Table 5(a) for Nemenyi post-hoc test
     DEMSAR
@@ -73,3 +73,18 @@ def critical_difference_threshold(n_models: int, n_datasets: int, significance: 
         cd = critical_values_010[n_models] * np.sqrt(n_models * (n_models+1) / (6 * n_datasets))
 
     return round(cd, 2)
+
+
+def critical_difference_bonferroni_dunn(n_models: int, n_datasets: int, significance: float = 0.05):
+    """
+    Calcula a Diferença Crítica (CD) para o teste Bonferroni-Dunn.
+    Fórmula: CD = q_alpha * sqrt(k(k+1) / 6N)
+    Onde q_alpha é o valor crítico da distribuição normal ajustado para (k-1) comparações.
+    """
+    # Para Bonferroni-Dunn (bilateral), dividimos alpha por 2*(k-1)
+    # k-1 pois comparamos o controle contra os outros k-1 modelos
+    q_alpha = scipy.stats.norm.ppf(1 - significance / (2 * (n_models - 1)))
+
+    cd = q_alpha * np.sqrt(n_models * (n_models + 1) / (6 * n_datasets))
+
+    return round(cd, 3)

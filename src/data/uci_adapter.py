@@ -18,9 +18,6 @@ class UCIAdapter(base.Dataset):
         dataset = fetch_ucirepo(id=self.id)
         return dataset.data.features, dataset.data.targets
 
-    def _remove_categorical(self):
-        self.X = self.X.select_dtypes(include="float64")
-
     @abc.abstractmethod
     def __iter__(self):
         return stream.iter_pandas(

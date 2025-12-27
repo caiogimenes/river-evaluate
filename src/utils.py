@@ -22,7 +22,7 @@ def rank_logs(logs: List[RunnerLog], att: str, models, datasets):
 
     return DataFrame(friedman_matrix, columns=models)
 
-def evaluate(dataset, model, metric, print_every=10):
+def evaluate(dataset, model, metric, print_every=100):
     """
     Executa a avaliação progressiva e captura métricas de performance e complexidade.
     Retorna dicionários com o histórico de cada métrica para plotagem.
@@ -68,7 +68,11 @@ def evaluate(dataset, model, metric, print_every=10):
 def run_prequential_eval(models, datasets, instances):
     logs = []
     for d_name, dataset_generator in datasets.items():
-        data_gen = dataset_generator[0]()
+        if isinstance(dataset_generator, tuple):
+            data_gen = dataset_generator[0]()
+        else:
+            data_gen = dataset_generator()
+
         for model_name, model in models.items():
             eval_model = {
                 model_name: model.clone()
@@ -80,6 +84,6 @@ def run_prequential_eval(models, datasets, instances):
                 eval_dataset_stream,
                 eval_model,
                 RMSE(),
-                print_every= instances / 100
+                print_every= instances // 100
             ))
     return logs
