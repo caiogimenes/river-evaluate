@@ -19,9 +19,6 @@ class OpenMLAdapter(base.Dataset):
         X, y, _, _ = dataset.get_data(self.target)
         return X, y
 
-    def _remove_categorical(self):
-        self.X = self.X.select_dtypes(include="float64")
-
     def __iter__(self):
         return stream.iter_pandas(
             X=self.X,
