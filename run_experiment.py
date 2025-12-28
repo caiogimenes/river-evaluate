@@ -3,9 +3,9 @@ from src.data import get_friedman_datasets, get_hyperplane_datasets, get_real_da
 from src.models import get_models
 from src.utils import run_prequential_eval, run_prequential_eval_parallel
 
-if __name__ == "__main__":
-    INSTANCES = 1_000_000
+INSTANCES = 1_000_000
 
+if __name__ == "__main__":
     friedman_datasets = get_friedman_datasets("gsg", n_datasets=6, n_instances=INSTANCES)
     hyperplane_datasets = get_hyperplane_datasets(6)
     rbf_datasets = get_rbf_datasets(6)

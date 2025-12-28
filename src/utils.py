@@ -145,6 +145,7 @@ def run_prequential_eval_parallel(models, datasets, instances, n_jobs=-1):
     Executa avaliação em paralelo com barra de progresso.
     """
     # Prepara a lista de tarefas
+    print(f"Running on {n_jobs} cores")
     tasks = []
     for d_name, d_factory in datasets.items():
         for m_name, m_proto in models.items():
