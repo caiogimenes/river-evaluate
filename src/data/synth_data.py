@@ -1,80 +1,102 @@
 from river.datasets import synth
 import numpy as np
 
-def get_friedman_datasets(drift_type: str | list, n_datasets=15, n_instances=1000):
-    seeds_pool = np.random.choice(100, size=n_datasets, replace=False)
-    np.random.shuffle(seeds_pool)
-    windows_pool = np.arange(100_000, 200_000, step=20_000)
-    position_pool = np.arange(n_instances/10, n_instances * 4/5, step=n_instances/4)
+
+def get_friedman_datasets(drift_type: str | list, n_datasets=15, n_instances=1_000_000):
+    seeds_pool = np.random.choice(1000, size=n_datasets, replace=False)
+    min_window = int(n_instances * 0.05)
+    max_window = int(n_instances * 0.15)
     datasets = {}
     for i in range(n_datasets):
-        if isinstance(drift_type, list):
-            drift = np.random.choice(drift_type)
-        else:
-            drift = drift_type
+        drift = np.random.choice(drift_type) if isinstance(drift_type, list) else drift_type
+        seed = int(seeds_pool[i])
 
         if drift == "lea":
-            position = sorted(np.random.choice(position_pool,size=3, replace=False))
+            position = (int(n_instances * 0.25), int(n_instances * 0.5), int(n_instances * 0.75))
         else:
-            position = sorted(np.random.choice(position_pool,size=2, replace=False))
+            position = (int(n_instances * 0.3), int(n_instances * 0.7))
 
-        seed = int(seeds_pool[i])
-        window = np.random.choice(windows_pool)
+        window = np.random.randint(min_window, max_window)
 
-        datasets[f"""
+        dset_name = f"""
         Friedman
         Drift = {drift.upper()}
         Seed = {seed}
         Transition Window = {window}
-        Drift positions: {position}"""] = lambda s=seed, d=drift, p=position, w=window: synth.FriedmanDrift(
+        Drift positions: {position}"""
+
+        datasets[dset_name] = lambda s=seed, d=drift, p=position, w=window: synth.FriedmanDrift(
             seed=s,
             drift_type=d,
             position=p,
             transition_window=w
-        ),
+        )
 
     return datasets
 
+
 def get_hyperplane_datasets(n_datasets=15):
-    seeds = np.random.choice(100, size=n_datasets, replace=False)
+    seeds = np.random.choice(1000, size=n_datasets, replace=False)
     np.random.shuffle(seeds)
     datasets = {}
     for i in range(n_datasets):
-        drift_feat = np.random.choice(np.arange(1,10))
-        mag_change = np.random.random()
-        noise = np.random.random()
+        drift_feat = np.random.randint(3,6)
+        mag_change = np.random.randint(2, 5) / 10
+        noise = np.random.randint(2, 6) / 10
         seed = int(seeds[i])
 
-        datasets[f"""
+        d_set_name = f"""
         Hyperplane
         Seed = {seed}
         Drift Feat: {drift_feat}
         Magnitude: {mag_change}
-        Noise: {noise}"""] = lambda s=seed, d=drift_feat, m=mag_change, n=noise: synth.Hyperplane(
+        Noise: {noise}"""
+
+        datasets[d_set_name] = lambda s=seed, d=drift_feat, m=mag_change, n=noise: synth.Hyperplane(
             seed=s,
             n_drift_features=d,
             mag_change=m,
             noise_percentage=n
-        ),
+        )
 
     return datasets
 
-def get_sea_datasets(n_datasets=15):
-    seeds = np.random.choice(100, size=n_datasets, replace=False)
+
+def get_rbf_datasets(n_datasets=15):
+    seeds = np.random.choice(1000, size=n_datasets*2, replace=False)
     np.random.shuffle(seeds)
     datasets = {}
     for i in range(n_datasets):
-        variant = np.random.choice(np.arange(0,2))
-        noise = np.random.random()
-        seed = int(seeds[i])
-        datasets[f"""
-        SEA
-        Seed = {seed}
-        Variant: {variant}
-        Noise: {noise}"""] = lambda s=seed, v=variant, n=noise: synth.SEA(
-            seed=s,
-            variant=v,
-            noise=n
-        ),
+        n_classes = np.random.randint(2,3)
+        n_features = 20
+        n_centroids = 2 * n_features
+        n_drift = n_centroids
+        change_speed = np.random.randint(1, 4) / 10
+        seed_model = int(seeds[i])
+        seed_sample = int(seeds[i + n_datasets])
+
+        dset_name = f"""
+        RandomRBF
+        Seed Model = {seed_model}
+        Seed Sample = {seed_sample}
+        N of classes: {n_classes}
+        Change Speed: {change_speed}
+        N of features: {n_features}
+        N of centroids: {n_centroids}
+        N of drift centroids: {n_drift}
+        """
+
+        datasets[dset_name] = \
+            (lambda sm=seed_model, sp=seed_sample, nc=n_classes, nf=n_features, cs=change_speed, nct=n_centroids, nd=n_drift:
+                   synth.RandomRBFDrift(
+                       seed_model=sm,
+                       seed_sample=sp,
+                       n_classes=nc,
+                       n_features=nf,
+                       n_centroids=nct,
+                       change_speed=cs,
+                       n_drift_centroids=nd,
+                   )
+            )
 
     return datasets

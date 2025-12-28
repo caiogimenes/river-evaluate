@@ -1,5 +1,5 @@
 from .run_log import RunnerLog
-from .synth_data import get_friedman_datasets, get_hyperplane_datasets, get_sea_datasets
+from .synth_data import get_friedman_datasets, get_hyperplane_datasets, get_rbf_datasets
 from .real_data import get_real_datasets
 from .abalone import Abalone
 from .wine import Wine
@@ -10,13 +10,14 @@ from .covertype import CoverType
 
 __all__ = [
     "RunnerLog",
-    "get_real_datasets",
     "Abalone",
     "Wine",
     "CalHousing",
     "Ailerons",
     "AirQuality",
     "CoverType",
+    "get_real_datasets",
     "get_friedman_datasets",
     "get_hyperplane_datasets",
+    "get_rbf_datasets",
 ]
