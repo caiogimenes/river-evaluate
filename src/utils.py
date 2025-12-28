@@ -6,6 +6,7 @@ from src.data import RunnerLog
 from joblib import Parallel, delayed
 from typing import List
 from tqdm import tqdm
+import os
 
 
 def rank_logs(logs: List[RunnerLog], att: str, models, datasets):
@@ -145,7 +146,7 @@ def run_prequential_eval_parallel(models, datasets, instances, n_jobs=-1):
     Executa avaliação em paralelo com barra de progresso.
     """
     # Prepara a lista de tarefas
-    print(f"Running on {n_jobs} cores")
+    print(f"Running on {os.cpu_count() if n_jobs == -1 else n_jobs} cores")
     tasks = []
     for d_name, d_factory in datasets.items():
         for m_name, m_proto in models.items():
