@@ -10,7 +10,7 @@ def get_models():
     cat_pipe = compose.SelectType(str) | preprocessing.OneHotEncoder()
 
     preprocessor = num_pipe + cat_pipe
-    MAX_DEPTH = 1000
+    MAX_DEPTH = 50
     return {
         f'HATR (baseline)': preprocessor | tree.HoeffdingAdaptiveTreeRegressor(),
 

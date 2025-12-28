@@ -7,6 +7,7 @@ from joblib import Parallel, delayed
 from typing import List
 from tqdm import tqdm
 import os
+import sys
 
 
 def rank_logs(logs: List[RunnerLog], att: str, models, datasets):
@@ -92,6 +93,7 @@ def evaluate_single_run(dataset_tuple, model_tuple, instances, print_every):
     Executa um treino isolado e retorna o log.
     Imprime apenas o resultado final para não bagunçar o output paralelo.
     """
+    sys.setrecursionlimit(200000)
     d_name, dataset_factory = dataset_tuple
     m_name, model_proto = model_tuple
 
