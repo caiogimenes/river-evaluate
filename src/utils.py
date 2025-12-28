@@ -135,9 +135,6 @@ def evaluate_single_run(dataset_tuple, model_tuple, instances, print_every):
                 memory_usage=getattr(model, '_raw_memory_usage', 0)
             )
 
-    # Feedback visual útil: Imprime apenas quando ACABA este job específico
-    print(f"{m_name} on {d_name}: RMSE={metric.get():.4f}")
-
     return log
 
 
