@@ -1,9 +1,29 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 
-def draw_nemenyi_diagram(df_ranks, cd, width=15, height=10, title="Nemenyi"):
+# Configuração global para estilo científico
+plt.rcParams.update({
+    'font.family': 'serif',
+    'font.serif': ['Times New Roman', 'DejaVu Serif'],
+    'font.size': 12,
+    'axes.linewidth': 1.5,
+    'xtick.major.width': 1.5,
+    'xtick.minor.width': 1.0,
+    'text.usetex': False  # Mude para True se tiver LaTeX instalado no sistema (opcional)
+})
+
+
+def draw_nemenyi_diagram(df_ranks, cd, filename=None, width=10, height=4, title=None):
     """
-    Gera um diagrama de Diferença Crítica (CD) a partir de rankings e valor de CD.
+    Gera um diagrama de Diferença Crítica (CD) de Nemenyi no padrão científico.
+
+    Args:
+        df_ranks (dict or pd.Series): Dicionário ou Series com {Algoritmo: Rank_Medio}
+        cd (float): Valor da Diferença Crítica (CD).
+        filename (str): Caminho para salvar o arquivo (ex: 'diagrama.png'). Se None, apenas mostra.
+        width (int): Largura da figura.
+        height (int): Altura da figura.
+        title (str): Título do gráfico (opcional).
     """
     if isinstance(df_ranks, dict):
         df_ranks = pd.Series(df_ranks)
@@ -15,38 +35,42 @@ def draw_nemenyi_diagram(df_ranks, cd, width=15, height=10, title="Nemenyi"):
 
     # Configuração da figura
     fig, ax = plt.subplots(figsize=(width, height))
-    fig.suptitle(title)
-    # Definir limites do eixo
-    min_rank = 1 # ou floor(values.min())
-    max_rank = len(values) # ou ceil(values.max())
+    if title:
+        fig.suptitle(title, fontsize=14, fontweight='bold', y=0.95)
 
-    ax.set_xlim(min_rank - 0.5, max_rank + 0.5)
-    ax.set_ylim(0, 3) # Altura abstrata para desenhar os elementos
-    ax.axis('off') # Remove bordas padrão
+    # Limites do eixo
+    min_rank = 1
+    max_rank = len(values)
 
-    # Posição da linha principal do eixo
-    y_base = 1.0
+    # Margem lateral para os rótulos não cortarem
+    padding = 0.5
+    ax.set_xlim(min_rank - padding, max_rank + padding)
+    ax.set_ylim(0, 2.5)  # Altura reduzida para focar na informação
+    ax.axis('off')  # Remove bordas padrão
 
-    # Desenhar linha do eixo
-    ax.plot([min_rank, max_rank], [y_base, y_base], color='black', linewidth=1.5)
+    # Posição da linha principal do eixo (escala de ranks)
+    y_base = 0.8
+
+    # Desenhar linha do eixo principal
+    ax.plot([min_rank, max_rank], [y_base, y_base], color='black', linewidth=1.5, zorder=1)
 
     # Desenhar ticks e rótulos do eixo
+    # Usamos passos inteiros ou meios passos dependendo da densidade
     for i in range(int(min_rank), int(max_rank) + 1):
-        ax.plot([i, i], [y_base, y_base + 0.1], color='black', linewidth=1)
-        ax.text(i, y_base + 0.2, str(i), ha='center', va='bottom', fontsize=10)
+        ax.plot([i, i], [y_base, y_base + 0.05], color='black', linewidth=1)
+        ax.text(i, y_base + 0.1, str(i), ha='center', va='bottom', fontsize=10)
 
-    ax.text(min_rank - 0.2, y_base, 'Average Rank', ha='right', va='center', fontweight='bold')
+    # Legenda do eixo
+    ax.text(min_rank, y_base + 0.25, 'Average Rank', ha='left', va='center', fontweight='bold', fontsize=11)
 
-    # Lógica para as barras de "Clique" (grupos sem diferença significativa)
-    # Um grupo está conectado se a diferença entre o melhor e o pior rank do grupo for < CD
+    # --- LÓGICA DE CLIQUES (Grupos sem diferença estatística) ---
     cliques = []
     n = len(values)
     for i in range(n):
         for j in range(i + 1, n):
             if values[j] - values[i] < cd:
-                # Potencial clique, vamos ver se é o mais longo a partir de i
-                if j == n-1 or (values[j+1] - values[i] >= cd):
-                     cliques.append((i, j))
+                if j == n - 1 or (values[j + 1] - values[i] >= cd):
+                    cliques.append((i, j))
             else:
                 break
 
@@ -61,43 +85,64 @@ def draw_nemenyi_diagram(df_ranks, cd, width=15, height=10, title="Nemenyi"):
         if not is_sub:
             final_cliques.append(c)
 
-    # Desenhar as barras de conexão (cliques) acima do eixo
-    y_clique_start = y_base + 0.5
-    y_step = 0.15
+    # Desenhar as barras de conexão (cliques) ACIMA do eixo
+    # Ajuste fino: movemos as barras para cima para não colidir com os pontos
+    y_clique_start = y_base + 0.4
+    y_step = 0.15  # Espaçamento entre barras sobrepostas
 
     for idx, (start_idx, end_idx) in enumerate(final_cliques):
         start_val = values[start_idx]
         end_val = values[end_idx]
-        y_pos = y_clique_start + (idx * y_step)
+        # Ciclo de posições para evitar empilhamento infinito se houver muitos cliques
+        y_pos = y_clique_start + ((idx % 3) * y_step)
 
         # Linha grossa conectando os algoritmos
-        ax.plot([start_val, end_val], [y_pos, y_pos], linewidth=4, color='black', alpha=0.7)
+        ax.plot([start_val, end_val], [y_pos, y_pos], linewidth=3, color='black', alpha=0.8)
 
-    # Desenhar barra de referência do CD (canto superior esquerdo)
-    ax.plot([min_rank, min_rank + cd], [2.8, 2.8], color='red', linewidth=2)
-    ax.text(min_rank + cd/2, 2.9, f'CD = {cd}', ha='center', va='bottom', color='red', fontweight='bold')
+    # --- BARRA DE REFERÊNCIA DO CD ---
+    # Colocada no canto superior esquerdo ou direito
+    cd_x_start = min_rank
+    cd_y = y_base + 1.2
 
-    # Desenhar os pontos e rótulos dos algoritmos
+    ax.plot([cd_x_start, cd_x_start + cd], [cd_y, cd_y], color='black', linewidth=2)
+    # Ticks nas pontas da barra de CD
+    ax.plot([cd_x_start, cd_x_start], [cd_y - 0.05, cd_y + 0.05], color='black', linewidth=1)
+    ax.plot([cd_x_start + cd, cd_x_start + cd], [cd_y - 0.05, cd_y + 0.05], color='black', linewidth=1)
+
+    ax.text(cd_x_start + cd / 2, cd_y + 0.1, f'CD = {cd:.2f}', ha='center', va='bottom', fontsize=10, fontweight='bold')
+
+    # --- DESENHAR ALGORITMOS ---
     # Alternar alturas para evitar sobreposição de texto
     for i, (name, r) in enumerate(zip(names, values)):
         # Ponto no eixo
-        ax.scatter(r, y_base, color='black', s=50, zorder=3)
+        # Destaque condicional mantido
+        color = 'red' if "AQO" in name else 'black'
+
+        ax.scatter(r, y_base, color=color, s=40, zorder=3, edgecolors='white')
 
         # Linha tracejada descendo
-        level = (i % 3) # Níveis para alternar altura do texto
-        text_y = y_base - 0.3 - (level * 0.25)
+        level = (i % 3)  # Níveis para alternar altura do texto
+        # Ajuste para garantir que o texto não fique muito longe nem muito perto
+        text_y_base = y_base - 0.1
+        text_y = text_y_base - 0.1 - (level * 0.4)
 
-        ax.plot([r, r], [y_base, text_y], color='gray', linestyle=':', linewidth=1)
+        ax.plot([r, r], [y_base, text_y + 0.1], color=color, linestyle=':', linewidth=0.8, alpha=0.6)
 
-        if "AQO" in name:
-            text_color = "red"
-        else:
-            text_color = "grey"
+        # Formatação do texto
+        font_weight = 'bold' if "AQO" in name else 'normal'
 
-        # Rótulo com caixa
-        ax.text(r, text_y, f'{name}\n({r:.2f})',
-                ha='center', va='top', fontsize=9,
-                bbox=dict(boxstyle="round,pad=0.3", fc="white", ec=text_color, alpha=0.8))
+        # Rótulo sem caixa (bbox) para visual mais limpo, ou caixa muito sutil
+        ax.text(r, text_y, f'{name}\n{r:.2f}',
+                ha='center', va='top', fontsize=10, color='black', fontweight=font_weight,
+                bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.7))
+
+    # Salvar ou mostrar
+    plt.tight_layout()
+
+    if filename:
+        # DPI 300 é o padrão para publicações
+        plt.savefig(filename, dpi=300, bbox_inches='tight', transparent=False)
+        print(f"Gráfico salvo em: {filename}")
 
     return fig
 
