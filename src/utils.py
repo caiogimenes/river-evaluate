@@ -160,7 +160,7 @@ def run_prequential_eval_parallel(models, datasets, instances, n_jobs=-1):
 
     # A mágica do tqdm com joblib:
     # Usamos o tqdm para criar uma barra baseada no número de tarefas
-    logs = Parallel(n_jobs=n_jobs, backend='loky')(
+    logs = Parallel(n_jobs=n_jobs, backend='loky', batch_size=2)(
         tqdm(tasks, total=len(tasks), desc="Progresso Geral")
     )
 
