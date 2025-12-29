@@ -23,7 +23,7 @@ def rank_logs(logs: List[RunnerLog], att: str, models, datasets):
         elif att == "time":
             friedman_matrix[dataset_idx, model_idx] = log.learn_time[-1]
 
-    return DataFrame(friedman_matrix, columns=models)
+    return DataFrame(friedman_matrix, columns=models, index=datasets)
 
 def evaluate(dataset, model, metric, print_every=100):
     """
