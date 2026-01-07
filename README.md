@@ -120,11 +120,3 @@ If you use this code in your research, please cite:
 ## ⚖️ License
 
 Distributed under the MIT License. See `LICENSE` for more information.
-
----
-
-### Dicas para personalização:
-
-1. **Citação:** Lembre-se de atualizar o bloco BibTeX com os dados reais do seu paper ou tese.
-2. **Licença:** Se o repositório for público, adicione um arquivo `LICENSE` (MIT ou Apache 2.0 são comuns para academia).
-3. **Specific Configs:** Notei que o `run_experiment.py` atual escreve em `logs/gradual.pkl`. Se houver outros scripts para os logs `abrupt.pkl` e `real.pkl` que vi na lista de arquivos, vale a pena mencionar como executá-los na seção "Usage".
