@@ -111,10 +111,10 @@ After running the experiments, logs are saved in the `logs/` directory. You can 
 If you use this code in your research, please cite:
 
 ```bibtex
-@article{YourName2026,
+@article{DIAS, C.G.,
   title={Adaptive Quantization Observers for Online Regression Trees},
-  author={Gimenes, Caio and [Co-authors]},
-  journal={Proceedings of [Conference/Journal]},
+  author={DIAS, C.G.]},
+  journal={},
   year={2026}
 }
 
