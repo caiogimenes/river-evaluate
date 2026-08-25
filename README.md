@@ -119,7 +119,13 @@ The framework utilizes a diverse set of data streams:
 
 ## 📊 Results & Visualization
 
-After running the experiments, logs are saved in the `logs/` directory. You can use the notebooks in `notebooks/` (start with `log_analysis.ipynb`) or the scripts in `src/plot/` to generate:
+After running the experiments, logs are saved in the `logs/` directory. Analysis notebooks live in `notebooks/` (start with `log_analysis.ipynb`). The first cell puts the repository root on `sys.path`, so `import src` works whether Jupyter's working directory is the repo root or `notebooks/`.
+
+```bash
+jupyter lab notebooks/log_analysis.ipynb
+```
+
+You can also generate figures from `src/plot/`:
 
 * Performance over time plots.
 * Critical Difference (CD) diagrams.
