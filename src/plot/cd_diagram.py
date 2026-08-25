@@ -1,19 +1,58 @@
+from __future__ import annotations
+
+from collections.abc import Sequence
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from .style import CD_DIAGRAM_RCPARAMS
+
 # Configuração global para estilo científico
-plt.rcParams.update({
-    'font.family': 'serif',
-    'font.serif': ['Times New Roman', 'DejaVu Serif'],
-    'font.size': 12,
-    'axes.linewidth': 1.5,
-    'xtick.major.width': 1.5,
-    'xtick.minor.width': 1.0,
-    'text.usetex': False  # Mude para True se tiver LaTeX instalado no sistema (opcional)
-})
+plt.rcParams.update(CD_DIAGRAM_RCPARAMS)
+
+__all__ = [
+    "draw_nemenyi_diagram",
+    "draw_bonferroni_dunn_diagram",
+]
 
 
-def draw_nemenyi_diagram(df_ranks, cd, filename=None, width=10, height=4, title=None):
+def _maximal_nemenyi_cliques(
+    values: Sequence[float],
+    cd: float,
+) -> list[tuple[int, int]]:
+    """Groups of algorithms whose average ranks differ by less than ``cd``."""
+    cliques: list[tuple[int, int]] = []
+    n = len(values)
+    for i in range(n):
+        for j in range(i + 1, n):
+            if values[j] - values[i] < cd:
+                if j == n - 1 or (values[j + 1] - values[i] >= cd):
+                    cliques.append((i, j))
+            else:
+                break
+
+    # Filtrar sub-cliques (manter apenas os maximais)
+    final_cliques: list[tuple[int, int]] = []
+    for c in cliques:
+        is_sub = False
+        for other in cliques:
+            if c != other and other[0] <= c[0] and other[1] >= c[1]:
+                is_sub = True
+                break
+        if not is_sub:
+            final_cliques.append(c)
+    return final_cliques
+
+
+def draw_nemenyi_diagram(
+    df_ranks,
+    cd: float,
+    filename: str | Path | None = None,
+    width: float = 10,
+    height: float = 4,
+    title: str | None = None,
+):
     """
     Gera um diagrama de Diferença Crítica (CD) de Nemenyi no padrão científico.
 
@@ -64,26 +103,7 @@ def draw_nemenyi_diagram(df_ranks, cd, filename=None, width=10, height=4, title=
     ax.text(min_rank, y_base + 0.25, 'Average Rank', ha='left', va='center', fontweight='bold', fontsize=11)
 
     # --- LÓGICA DE CLIQUES (Grupos sem diferença estatística) ---
-    cliques = []
-    n = len(values)
-    for i in range(n):
-        for j in range(i + 1, n):
-            if values[j] - values[i] < cd:
-                if j == n - 1 or (values[j + 1] - values[i] >= cd):
-                    cliques.append((i, j))
-            else:
-                break
-
-    # Filtrar sub-cliques (manter apenas os maximais)
-    final_cliques = []
-    for c in cliques:
-        is_sub = False
-        for other in cliques:
-            if c != other and other[0] <= c[0] and other[1] >= c[1]:
-                is_sub = True
-                break
-        if not is_sub:
-            final_cliques.append(c)
+    final_cliques = _maximal_nemenyi_cliques(values, cd)
 
     # Desenhar as barras de conexão (cliques) ACIMA do eixo
     # Ajuste fino: movemos as barras para cima para não colidir com os pontos
@@ -146,7 +166,15 @@ def draw_nemenyi_diagram(df_ranks, cd, filename=None, width=10, height=4, title=
 
     return fig
 
-def draw_bonferroni_dunn_diagram(df_ranks, cd, control_label, width=15, height=10, title="Bonferroni-Dunn Diagram"):
+
+def draw_bonferroni_dunn_diagram(
+    df_ranks,
+    cd: float,
+    control_label: str,
+    width: float = 15,
+    height: float = 10,
+    title: str = "Bonferroni-Dunn Diagram",
+):
     """
     Gera um diagrama Bonferroni-Dunn focado em um algoritmo de controle.
     """

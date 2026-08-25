@@ -1,6 +1,13 @@
-from river import tree, compose, preprocessing
+from __future__ import annotations
 
-def get_models():
+from typing import Any
+
+from river import compose, preprocessing, tree
+
+__all__ = ["get_models"]
+
+
+def get_models() -> dict[str, Any]:
     """Retorna um dicionário de modelos para avaliação."""
 
     num_pipe = compose.SelectType(float, int) | preprocessing.StandardScaler()
@@ -8,34 +15,34 @@ def get_models():
 
     preprocessor = num_pipe + cat_pipe
     return {
-        f'HATR (baseline)': preprocessor | tree.HoeffdingAdaptiveTreeRegressor(),
+        'HATR (baseline)': preprocessor | tree.HoeffdingAdaptiveTreeRegressor(),
 
-        f'HTR-QO-0.25 (baseline)': preprocessor | tree.HoeffdingTreeRegressor(
+        'HTR-QO-0.25 (baseline)': preprocessor | tree.HoeffdingTreeRegressor(
             splitter=tree.splitter.QOSplitter(
                 allow_multiway_splits=True,
             ),
         ),
 
-        f'HTR-QO-0.5 (baseline)': preprocessor | tree.HoeffdingTreeRegressor(
+        'HTR-QO-0.5 (baseline)': preprocessor | tree.HoeffdingTreeRegressor(
             splitter=tree.splitter.QOSplitter(
                 radius=0.5,
                 allow_multiway_splits=True,
             ),
         ),
 
-        f'HTR-AQO-Triangular': preprocessor | tree.HoeffdingTreeRegressor(
+        'HTR-AQO-Triangular': preprocessor | tree.HoeffdingTreeRegressor(
             splitter=tree.splitter.AdaptiveQOSplitter(
                 kernel="triangular",
             ),
         ),
 
-        f'HTR-AQO-Epanechnikov': preprocessor | tree.HoeffdingTreeRegressor(
+        'HTR-AQO-Epanechnikov': preprocessor | tree.HoeffdingTreeRegressor(
             splitter=tree.splitter.AdaptiveQOSplitter(
                 kernel="epanechnikov",
             ),
         ),
 
-        f'HTR-AQO-Smooth': preprocessor | tree.HoeffdingTreeRegressor(
+        'HTR-AQO-Smooth': preprocessor | tree.HoeffdingTreeRegressor(
             splitter=tree.splitter.AdaptiveQOSplitter(
                 kernel="smooth",
             ),

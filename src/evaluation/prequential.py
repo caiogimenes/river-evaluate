@@ -1,18 +1,42 @@
+"""Prequential evaluation: predict, update the metric, then learn."""
+
+from __future__ import annotations
+
 import logging
 import os
 import time
-from typing import List
+from collections.abc import Callable, Iterable, Mapping
+from typing import Any
 
 from joblib import Parallel, delayed
 from river.metrics import RMSE
 from tqdm import tqdm
 
-from src.data import RunnerLog
+from src.evaluation.runner_log import RunnerLog
 
 logger = logging.getLogger(__name__)
 
+# Log a snapshot every 1% of the stream (at least once).
+LOG_FRACTION = 100
 
-def evaluate_prequential(dataset_name, stream, model, metric, log_every: int, model_name: str) -> RunnerLog:
+__all__ = [
+    "LOG_FRACTION",
+    "evaluate",
+    "evaluate_prequential",
+    "evaluate_single_run",
+    "run_prequential_eval",
+    "run_prequential_eval_parallel",
+]
+
+
+def evaluate_prequential(
+    dataset_name: str,
+    stream: Iterable[tuple[dict[str, Any], Any]],
+    model: Any,
+    metric: Any,
+    log_every: int,
+    model_name: str,
+) -> RunnerLog:
     """
     Avaliação pré-quencial: prediz, atualiza a métrica e então aprende.
 
@@ -50,7 +74,7 @@ def evaluate_prequential(dataset_name, stream, model, metric, log_every: int, mo
     return log
 
 
-def evaluate(dataset: dict, model: dict, metric, print_every=100) -> RunnerLog:
+def evaluate(dataset: dict, model: dict, metric: Any, print_every: int = 100) -> RunnerLog:
     """Compatibilidade com a API antiga baseada em dicts de um único item."""
     dataset_name, dataset_stream = next(iter(dataset.items()))
     model_name, eval_model = next(iter(model.items()))
@@ -64,7 +88,12 @@ def evaluate(dataset: dict, model: dict, metric, print_every=100) -> RunnerLog:
     )
 
 
-def evaluate_single_run(dataset_tuple, model_tuple, instances, print_every) -> RunnerLog:
+def evaluate_single_run(
+    dataset_tuple: tuple[str, Callable[[], Any]],
+    model_tuple: tuple[str, Any],
+    instances: int,
+    print_every: int,
+) -> RunnerLog:
     """Executa um par dataset/modelo isolado (processo joblib)."""
     dataset_name, dataset_factory = dataset_tuple
     model_name, model_proto = model_tuple
@@ -81,9 +110,13 @@ def evaluate_single_run(dataset_tuple, model_tuple, instances, print_every) -> R
     )
 
 
-def run_prequential_eval(models, datasets, instances) -> List[RunnerLog]:
-    logs = []
-    log_every = max(instances // 100, 1)
+def run_prequential_eval(
+    models: Mapping[str, Any],
+    datasets: Mapping[str, Callable[[], Any]],
+    instances: int,
+) -> list[RunnerLog]:
+    logs: list[RunnerLog] = []
+    log_every = max(instances // LOG_FRACTION, 1)
     for dataset_name, dataset_generator in datasets.items():
         for model_name, model in models.items():
             logs.append(
@@ -97,10 +130,15 @@ def run_prequential_eval(models, datasets, instances) -> List[RunnerLog]:
     return logs
 
 
-def run_prequential_eval_parallel(models, datasets, instances, n_jobs=-1) -> List[RunnerLog]:
+def run_prequential_eval_parallel(
+    models: Mapping[str, Any],
+    datasets: Mapping[str, Callable[[], Any]],
+    instances: int,
+    n_jobs: int = -1,
+) -> list[RunnerLog]:
     n_cores = os.cpu_count() if n_jobs == -1 else n_jobs
     logger.info("Running on %s cores", n_cores)
-    log_every = max(instances // 100, 1)
+    log_every = max(instances // LOG_FRACTION, 1)
     tasks = []
     for dataset_name, dataset_factory in datasets.items():
         for model_name, model_proto in models.items():

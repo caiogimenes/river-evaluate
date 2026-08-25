@@ -1,34 +1,41 @@
+from __future__ import annotations
+
 import logging
+import warnings
+from collections.abc import Iterator, Sequence
 from itertools import cycle
-from typing import List
+from pathlib import Path
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
 
-from src.data import RunnerLog
+from src.evaluation.runner_log import RunnerLog
 from src.paths import resolve_repo_path
+
+from .style import PLOT_RCPARAMS
 
 logger = logging.getLogger(__name__)
 
+__all__ = ["Plots"]
+
 
 class Plots:
-    def __init__(self):
+    def __init__(self) -> None:
         # Configuração global de estilo para coincidir com LaTeX
-        plt.rcParams.update({
-            'font.family': 'serif',
-            'font.serif': ['Times New Roman', 'DejaVu Serif'],
-            'font.size': 11,
-            'axes.linewidth': 1.0,
-            'grid.alpha': 0.3,
-            'legend.fontsize': 10,
-            'lines.linewidth': 1.5
-        })
+        plt.rcParams.update(PLOT_RCPARAMS)
 
         # Tamanho otimizado para uma página inteira de artigo (duas colunas ou página cheia)
         # Largura ~8-10 polegadas, Altura ~10-12 polegadas
         self.figsize = (10, 12)
 
-    def plot_performance(self, logs: List[RunnerLog]):
+    def plot_performance(self, logs: Sequence[RunnerLog]) -> None:
+        """Deprecated interactive RMSE plot; prefer :meth:`export`."""
+        warnings.warn(
+            "Plots.plot_performance is deprecated; use Plots.export",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         datasets = {log.dataset for log in logs}
         for dataset in datasets:
             plt.figure(figsize=self.figsize)
@@ -40,7 +47,7 @@ class Plots:
             plt.show()
         return
 
-    def _get_styles(self):
+    def _get_styles(self) -> Iterator[dict[str, Any]]:
         """
         Gerador de estilos para diferenciar múltiplos algoritmos
         mesmo em preto e branco.
@@ -60,7 +67,7 @@ class Plots:
             })
         return cycle(combinations)
 
-    def export(self, logs: List[RunnerLog], save_path="output/plots"):
+    def export(self, logs: Sequence[RunnerLog], save_path: str | Path = "output/plots") -> None:
         """
         Gera e salva painéis comparativos para cada dataset encontrado nos logs.
 
@@ -127,8 +134,8 @@ class Plots:
             axes_settings = [
                 (ax_perf, "Performance (RMSE)", "RMSE"),
                 (ax_leaves, "Model Complexity", "Number of Leaves"),
-                (ax_inf_time, "Cumulative Inference Time", "Time ($\mu$s)"),
-                (ax_learn_time, "Cumulative Training Time", "Time ($\mu$s)"),
+                (ax_inf_time, "Cumulative Inference Time", r"Time ($\mu$s)"),
+                (ax_learn_time, "Cumulative Training Time", r"Time ($\mu$s)"),
                 (ax_height, "Tree Height", "Height"),
                 (ax_mem, "Memory Usage", "Bytes")
             ]
@@ -160,8 +167,13 @@ class Plots:
             logger.info("Gráfico salvo: %s", filename)
             plt.close(fig)
 
-
-    def plot_all(self, logs: List[RunnerLog]):
+    def plot_all(self, logs: Sequence[RunnerLog]) -> None:
+        """Deprecated interactive 3x2 panel; prefer :meth:`export`."""
+        warnings.warn(
+            "Plots.plot_all is deprecated; use Plots.export",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         datasets = {log.dataset for log in logs}
         for dataset in datasets:
             fig, axs = plt.subplots(3,2, figsize=self.figsize)
@@ -196,7 +208,7 @@ class Plots:
             plt.show()
         return
 
-    def plot_band_for_model(self, logs: List[RunnerLog], model):
+    def plot_band_for_model(self, logs: Sequence[RunnerLog], model: str) -> None:
         logs = [log for log in logs if log.model == model]
         performances = []
         for log in logs:
@@ -210,5 +222,5 @@ class Plots:
         plt.show()
         return
 
-    def plot_performance_diff(self, logs: tuple):
+    def plot_performance_diff(self, logs: tuple) -> None:
         pass

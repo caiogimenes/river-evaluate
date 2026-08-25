@@ -26,8 +26,11 @@ cd river-evaluate
 python -m venv venv
 source venv/bin/activate  # On Windows use `venv\Scripts\activate`
 
-# 3. Install standard dependencies
+# 3. Install experiment dependencies
 pip install -r requirements.txt
+
+# 3b. Optional: Jupyter stack for the analysis notebooks
+pip install -r requirements-dev.txt
 
 # 4. Install the custom River fork (Specific branch 'feat/adaptive-qo' is required)
 pip install git+https://github.com/caiogimenes/river.git@feat/adaptive-qo
@@ -54,13 +57,17 @@ river-evaluate/
 ├── output/               # Generated plots and diagrams
 ├── src/
 │   ├── data/             # Data generators and adapters (Synthetic & Real)
-│   ├── evaluation/       # Prequential evaluation loop
+│   ├── evaluation/       # Prequential loop + RunnerLog
+│   ├── experiment/       # YAML config, dataset assembly, pickle/manifest
 │   ├── models/           # Definition of Regressors and Splitters
 │   ├── plot/             # Visualization utilities
-│   ├── stats/            # Statistical tests (Friedman, Nemenyi)
-│   └── utils.py          # Ranking helpers (notebook-compatible)
+│   ├── stats/            # Friedman / Nemenyi / ranking
+│   ├── logging_setup.py
+│   ├── paths.py          # REPO_ROOT and resolve_repo_path
+│   └── utils.py          # Notebook-compatible re-exports
 ├── run_experiment.py     # Thin wrapper around the CLI (same defaults)
-└── requirements.txt      # Project dependencies
+├── requirements.txt      # Experiment dependencies
+└── requirements-dev.txt  # Jupyter / notebook stack
 
 ```
 
