@@ -1,7 +1,18 @@
-import scipy.stats
-import numpy as np
+from __future__ import annotations
 
-def eval_significance(value, n_models, n_datasets, alpha):
+import numpy as np
+import scipy.stats
+
+__all__ = [
+    "eval_significance",
+    "friedman_statistics",
+    "iman_davenport",
+    "critical_difference_nemenyi",
+    "critical_difference_bonferroni_dunn",
+]
+
+
+def eval_significance(value: float, n_models: int, n_datasets: int, alpha: float) -> bool:
     dfn = n_models - 1
     dfd = dfn * (n_datasets - 1)
     critical_value = scipy.stats.f.ppf(q=1-alpha, dfn=dfn, dfd=dfd)
@@ -10,7 +21,8 @@ def eval_significance(value, n_models, n_datasets, alpha):
 
     return False
 
-def friedman_statistics(avg_rank, N: int):
+
+def friedman_statistics(avg_rank, N: int) -> float:
     """
     Calculates the Friedman statistic.
     :param avg_rank: list or array of average ranks for each algorithm
@@ -24,7 +36,7 @@ def friedman_statistics(avg_rank, N: int):
     return chi_sq
 
 
-def iman_davenport(chi_sq, N: int, k: int):
+def iman_davenport(chi_sq: float, N: int, k: int) -> float:
     """
     Calculates the Iman-Davenport statistic.
     :param chi_sq: The result from the Friedman statistic
@@ -39,7 +51,7 @@ def iman_davenport(chi_sq, N: int, k: int):
     return (N - 1) * chi_sq / denominator
 
 
-def critical_difference_nemenyi(n_models: int, n_datasets: int, significance: float = 0.05):
+def critical_difference_nemenyi(n_models: int, n_datasets: int, significance: float = 0.05) -> float:
     """
     Based on Table 5(a) for Nemenyi post-hoc test
     DEMSAR
@@ -66,16 +78,20 @@ def critical_difference_nemenyi(n_models: int, n_datasets: int, significance: fl
         9: 2.855,
         10: 2.920,
     }
-    cd = 0
     if significance == 0.05:
-        cd = critical_values_005[n_models] * np.sqrt(n_models * (n_models+1) / (6 * n_datasets))
+        q_alpha = critical_values_005[n_models]
     elif significance == 0.1:
-        cd = critical_values_010[n_models] * np.sqrt(n_models * (n_models+1) / (6 * n_datasets))
+        q_alpha = critical_values_010[n_models]
+    else:
+        raise ValueError(
+            f"Unsupported Nemenyi significance {significance!r}; expected 0.05 or 0.1"
+        )
 
+    cd = q_alpha * np.sqrt(n_models * (n_models+1) / (6 * n_datasets))
     return round(cd, 2)
 
 
-def critical_difference_bonferroni_dunn(n_models: int, n_datasets: int, significance: float = 0.05):
+def critical_difference_bonferroni_dunn(n_models: int, n_datasets: int, significance: float = 0.05) -> float:
     """
     Calcula a Diferença Crítica (CD) para o teste Bonferroni-Dunn.
     Fórmula: CD = q_alpha * sqrt(k(k+1) / 6N)

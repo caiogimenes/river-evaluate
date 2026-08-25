@@ -1,12 +1,25 @@
-from .airquality import AirQuality
-from .abalone import Abalone
-from .wine import Wine
-from river.datasets import Bikes, Elec2
-from .cal_housing import CalHousing
-from .ailerons import Ailerons
-from .covertype import CoverType
+"""Real-world stream factories used in the experiment.
 
-def get_real_datasets():
+Commented-out datasets are kept for local debugging only and must stay inactive
+so the published suite (Bikes, Elec2, CoverType) is unchanged.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+from typing import Any
+
+from river.datasets import Bikes, Elec2
+
+from .abalone import Abalone
+from .ailerons import Ailerons
+from .airquality import AirQuality
+from .cal_housing import CalHousing
+from .covertype import CoverType
+from .wine import Wine
+
+
+def get_real_datasets() -> dict[str, Callable[[], Any]]:
     """
     Retorna um dicionário de 'fábricas' de dataset.
     Cada item é uma função que, quando chamada, retorna um novo stream.

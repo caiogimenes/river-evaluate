@@ -1,14 +1,48 @@
-from river.datasets import synth
+"""Synthetic stream factories (Friedman, Hyperplane, RandomRBF).
+
+Sampling formulas, seeds, and constructor kwargs are part of the experimental
+protocol and must not change.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+from typing import Any
+
 import numpy as np
+from river.datasets import synth
 
 
-def get_friedman_datasets(drift_type: str | list, n_datasets=15, n_instances=1_000_000):
-    seeds_pool = np.random.choice(1000, size=n_datasets, replace=False)
+def _choice(rng: np.random.Generator | None, *args: Any, **kwargs: Any):
+    source = np.random if rng is None else rng
+    return source.choice(*args, **kwargs)
+
+
+def _randint(rng: np.random.Generator | None, low: int, high: int) -> int:
+    if rng is None:
+        return int(np.random.randint(low, high))
+    return int(rng.integers(low, high))
+
+
+def _shuffle(rng: np.random.Generator | None, values) -> None:
+    if rng is None:
+        np.random.shuffle(values)
+    else:
+        rng.shuffle(values)
+
+
+def get_friedman_datasets(
+    drift_type: str | list,
+    n_datasets: int = 15,
+    n_instances: int = 1_000_000,
+    rng: np.random.Generator | None = None,
+) -> dict[str, Callable[[], Any]]:
+    seeds_pool = _choice(rng, 1000, size=n_datasets, replace=False)
     min_window = int(n_instances * 0.05)
     max_window = int(n_instances * 0.15)
-    datasets = {}
+    datasets: dict[str, Callable[[], Any]] = {}
     for i in range(n_datasets):
-        drift = np.random.choice(drift_type) if isinstance(drift_type, list) else drift_type
+        drift = _choice(rng, drift_type) if isinstance(drift_type, list) else drift_type
         seed = int(seeds_pool[i])
 
         if drift == "lea":
@@ -16,7 +50,7 @@ def get_friedman_datasets(drift_type: str | list, n_datasets=15, n_instances=1_0
         else:
             position = (int(n_instances * 0.3), int(n_instances * 0.7))
 
-        window = np.random.randint(min_window, max_window)
+        window = _randint(rng, min_window, max_window)
 
         dset_name = f"""
         Friedman
@@ -35,14 +69,17 @@ def get_friedman_datasets(drift_type: str | list, n_datasets=15, n_instances=1_0
     return datasets
 
 
-def get_hyperplane_datasets(n_datasets=15):
-    seeds = np.random.choice(1000, size=n_datasets, replace=False)
-    np.random.shuffle(seeds)
-    datasets = {}
+def get_hyperplane_datasets(
+    n_datasets: int = 15,
+    rng: np.random.Generator | None = None,
+) -> dict[str, Callable[[], Any]]:
+    seeds = _choice(rng, 1000, size=n_datasets, replace=False)
+    _shuffle(rng, seeds)
+    datasets: dict[str, Callable[[], Any]] = {}
     for i in range(n_datasets):
-        drift_feat = np.random.randint(3,6)
-        mag_change = np.random.randint(2, 5) / 10
-        noise = np.random.randint(2, 6) / 10
+        drift_feat = _randint(rng, 3, 6)
+        mag_change = _randint(rng, 2, 5) / 10
+        noise = _randint(rng, 2, 6) / 10
         seed = int(seeds[i])
 
         d_set_name = f"""
@@ -62,16 +99,19 @@ def get_hyperplane_datasets(n_datasets=15):
     return datasets
 
 
-def get_rbf_datasets(n_datasets=15):
-    seeds = np.random.choice(1000, size=n_datasets*2, replace=False)
-    np.random.shuffle(seeds)
-    datasets = {}
+def get_rbf_datasets(
+    n_datasets: int = 15,
+    rng: np.random.Generator | None = None,
+) -> dict[str, Callable[[], Any]]:
+    seeds = _choice(rng, 1000, size=n_datasets * 2, replace=False)
+    _shuffle(rng, seeds)
+    datasets: dict[str, Callable[[], Any]] = {}
     for i in range(n_datasets):
-        n_classes = np.random.randint(2,3)
+        n_classes = _randint(rng, 2, 3)
         n_features = 20
         n_centroids = 2 * n_features
         n_drift = n_centroids
-        change_speed = np.random.randint(1, 4) / 10
+        change_speed = _randint(rng, 1, 4) / 10
         seed_model = int(seeds[i])
         seed_sample = int(seeds[i + n_datasets])
 

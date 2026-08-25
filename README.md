@@ -26,8 +26,11 @@ cd river-evaluate
 python -m venv venv
 source venv/bin/activate  # On Windows use `venv\Scripts\activate`
 
-# 3. Install standard dependencies
+# 3. Install experiment dependencies
 pip install -r requirements.txt
+
+# 3b. Optional: Jupyter stack for the analysis notebooks
+pip install -r requirements-dev.txt
 
 # 4. Install the custom River fork (Specific branch 'feat/adaptive-qo' is required)
 pip install git+https://github.com/caiogimenes/river.git@feat/adaptive-qo
@@ -47,30 +50,46 @@ pip install git+https://github.com/caiogimenes/river.git@feat/adaptive-qo
 
 ```text
 river-evaluate/
-├── logs/                 # Stores raw experiment results (.pkl files)
+├── configs/              # Experiment YAML (instances, seed, datasets, output)
+├── experiments/          # CLI to run the prequential evaluation
+├── logs/                 # Raw experiment results (.pkl + .json manifest)
+├── notebooks/            # Post-hoc analysis of logs
 ├── output/               # Generated plots and diagrams
 ├── src/
 │   ├── data/             # Data generators and adapters (Synthetic & Real)
+│   ├── evaluation/       # Prequential loop + RunnerLog
+│   ├── experiment/       # YAML config, dataset assembly, pickle/manifest
 │   ├── models/           # Definition of Regressors and Splitters
 │   ├── plot/             # Visualization utilities
-│   ├── stats/            # Statistical tests (Friedman, Nemenyi)
-│   └── utils.py          # Evaluation loops
-├── run_experiment.py     # Main entry point for execution
-├── log_analysis.ipynb    # Jupyter notebook for result exploration
-└── requirements.txt      # Project dependencies
+│   ├── stats/            # Friedman / Nemenyi / ranking
+│   ├── logging_setup.py
+│   ├── paths.py          # REPO_ROOT and resolve_repo_path
+│   └── utils.py          # Notebook-compatible re-exports
+├── run_experiment.py     # Thin wrapper around the CLI (same defaults)
+├── requirements.txt      # Experiment dependencies
+└── requirements-dev.txt  # Jupyter / notebook stack
 
 ```
 
 ## 🚀 Usage
 
-To run the full experimental suite, execute the main script. This will trigger the prequential evaluation on the defined datasets.
+To run the full experimental suite, execute the main script (defaults live in `configs/experiment.yaml`):
 
 ```bash
 python run_experiment.py
-
+# equivalent:
+python experiments/run_prequential.py --config configs/experiment.yaml
 ```
 
-*Note: By default, the script is configured to process 1,000,000 instances per dataset. You can modify the `INSTANCES` constant in `run_experiment.py` for quicker debugging.*
+Useful overrides:
+
+```bash
+python experiments/run_prequential.py --instances 1000 --seed 42 --n-jobs 4 --output logs/debug.pkl
+```
+
+*Note: the default is still 1,000,000 instances per dataset. A master `seed` (default 42) is applied before sampling synthetic stream parameters so later runs can be reproduced. Pickles written before this refactor were generated without a master seed.*
+
+After a run, results are written to `logs/gradual.pkl` plus a JSON sidecar (`logs/gradual.json`) with seed, instance count, models, and timestamp.
 
 ## 🧪 Experimental Setup
 
@@ -100,7 +119,13 @@ The framework utilizes a diverse set of data streams:
 
 ## 📊 Results & Visualization
 
-After running the experiments, logs are saved in the `logs/` directory. You can use the provided notebook `log_analysis.ipynb` or the scripts in `src/plot/` to generate:
+After running the experiments, logs are saved in the `logs/` directory. Analysis notebooks live in `notebooks/` (start with `log_analysis.ipynb`). The first cell puts the repository root on `sys.path`, so `import src` works whether Jupyter's working directory is the repo root or `notebooks/`.
+
+```bash
+jupyter lab notebooks/log_analysis.ipynb
+```
+
+You can also generate figures from `src/plot/`:
 
 * Performance over time plots.
 * Critical Difference (CD) diagrams.
