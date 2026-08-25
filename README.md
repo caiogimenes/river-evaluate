@@ -47,30 +47,42 @@ pip install git+https://github.com/caiogimenes/river.git@feat/adaptive-qo
 
 ```text
 river-evaluate/
-├── logs/                 # Stores raw experiment results (.pkl files)
+├── configs/              # Experiment YAML (instances, seed, datasets, output)
+├── experiments/          # CLI to run the prequential evaluation
+├── logs/                 # Raw experiment results (.pkl + .json manifest)
+├── notebooks/            # Post-hoc analysis of logs
 ├── output/               # Generated plots and diagrams
 ├── src/
 │   ├── data/             # Data generators and adapters (Synthetic & Real)
+│   ├── evaluation/       # Prequential evaluation loop
 │   ├── models/           # Definition of Regressors and Splitters
 │   ├── plot/             # Visualization utilities
 │   ├── stats/            # Statistical tests (Friedman, Nemenyi)
-│   └── utils.py          # Evaluation loops
-├── run_experiment.py     # Main entry point for execution
-├── log_analysis.ipynb    # Jupyter notebook for result exploration
+│   └── utils.py          # Ranking helpers (notebook-compatible)
+├── run_experiment.py     # Thin wrapper around the CLI (same defaults)
 └── requirements.txt      # Project dependencies
 
 ```
 
 ## 🚀 Usage
 
-To run the full experimental suite, execute the main script. This will trigger the prequential evaluation on the defined datasets.
+To run the full experimental suite, execute the main script (defaults live in `configs/experiment.yaml`):
 
 ```bash
 python run_experiment.py
-
+# equivalent:
+python experiments/run_prequential.py --config configs/experiment.yaml
 ```
 
-*Note: By default, the script is configured to process 1,000,000 instances per dataset. You can modify the `INSTANCES` constant in `run_experiment.py` for quicker debugging.*
+Useful overrides:
+
+```bash
+python experiments/run_prequential.py --instances 1000 --seed 42 --n-jobs 4 --output logs/debug.pkl
+```
+
+*Note: the default is still 1,000,000 instances per dataset. A master `seed` (default 42) is applied before sampling synthetic stream parameters so later runs can be reproduced. Pickles written before this refactor were generated without a master seed.*
+
+After a run, results are written to `logs/gradual.pkl` plus a JSON sidecar (`logs/gradual.json`) with seed, instance count, models, and timestamp.
 
 ## 🧪 Experimental Setup
 
@@ -100,7 +112,7 @@ The framework utilizes a diverse set of data streams:
 
 ## 📊 Results & Visualization
 
-After running the experiments, logs are saved in the `logs/` directory. You can use the provided notebook `log_analysis.ipynb` or the scripts in `src/plot/` to generate:
+After running the experiments, logs are saved in the `logs/` directory. You can use the notebooks in `notebooks/` (start with `log_analysis.ipynb`) or the scripts in `src/plot/` to generate:
 
 * Performance over time plots.
 * Critical Difference (CD) diagrams.

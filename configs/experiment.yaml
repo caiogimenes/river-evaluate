@@ -1,0 +1,26 @@
+# Defaults match the original run_experiment.py (INSTANCES=1_000_000, 10 streams
+# per synthetic family, Friedman drift type "gsg", pickle path logs/gradual.pkl).
+#
+# `seed` is a master RNG seed applied BEFORE sampling synthetic dataset
+# parameters. Runs produced before this refactor did not set a master seed, so
+# they are not bit-identical to a seeded replay.
+
+seed: 42
+instances: 1000000
+n_jobs: -1
+
+output:
+  pickle: logs/gradual.pkl
+
+friedman:
+  drift_type: gsg
+  n_datasets: 10
+
+hyperplane:
+  n_datasets: 10
+
+rbf:
+  n_datasets: 10
+
+real:
+  enabled: true

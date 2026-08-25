@@ -1,8 +1,14 @@
-from src.data import RunnerLog
+import logging
+from itertools import cycle
+from typing import List
+
 import matplotlib.pyplot as plt
 import numpy as np
-from typing import List
-from itertools import cycle
+
+from src.data import RunnerLog
+from src.paths import resolve_repo_path
+
+logger = logging.getLogger(__name__)
 
 
 class Plots:
@@ -54,7 +60,7 @@ class Plots:
             })
         return cycle(combinations)
 
-    def export(self, logs: List[RunnerLog], save_path="./output/plots"):
+    def export(self, logs: List[RunnerLog], save_path="output/plots"):
         """
         Gera e salva painéis comparativos para cada dataset encontrado nos logs.
 
@@ -147,11 +153,12 @@ class Plots:
             # Deixar espaço extra embaixo para a legenda
             plt.subplots_adjust(bottom=0.08, top=0.95)
 
-            # Salvar
-            filename = f"{save_path}/analysis_{i}.png"
+            output_dir = resolve_repo_path(save_path)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            filename = output_dir / f"analysis_{i}.png"
             plt.savefig(filename, dpi=300, bbox_inches='tight')
-            print(f"Gráfico salvo: {filename}")
-            plt.close(fig)  # Fecha para liberar memória
+            logger.info("Gráfico salvo: %s", filename)
+            plt.close(fig)
 
 
     def plot_all(self, logs: List[RunnerLog]):
